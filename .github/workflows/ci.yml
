@@ -1,4 +1,4 @@
-name: Compile and Run one.c
+ name: Compile and Run one.c
 
 on:
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab

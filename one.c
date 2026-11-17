@@ -1,6 +1,9 @@
-#include<stdio.h>
+#include <stdio.h>
 
-int main(){
-  printf("Hello world");
-  return 0;
+int main() {
+    char array[10] = "Ayush";
+
+    for (int i = 0; i < 6; i++) {
+        printf("%c", array[i]);
+    }
 }

@@ -1,0 +1,19 @@
+name: Compile and Run one.c
+
+on:
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile one.c
+        run: gcc -Wall -Wextra one.c -o one
+
+      - name: Run compiled binary
+        run: ./one
+        

@@ -1,10 +1,10 @@
-name: Scaffold Expo App & Build APK
+name: Scaffold Expo App & Build Release APK
 
 on:
-  workflow_dispatch: # Manually triggered from the Actions tab
+  workflow_dispatch:
 
 permissions:
-  contents: write # Needed to save the generated Expo files to your repo
+  contents: write
 
 jobs:
   scaffold-and-build:
@@ -27,7 +27,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. Scaffold Expo project ONLY if package.json doesn't exist yet
+      # 3. Scaffold Expo project ONLY if package.json does not exist yet
       - name: Initialize Expo Project (First Run Only)
         if: ${{ hashFiles('package.json') == '' }}
         run: |
@@ -36,7 +36,7 @@ jobs:
           mv temp-app/* .
           rmdir temp-app
 
-          # Inject android.package into app.json so prebuild doesn't fail
+          # Inject android.package into app.json so prebuild succeeds non-interactively
           node -e '
             const fs = require("fs");
             const cfg = JSON.parse(fs.readFileSync("app.json", "utf8"));
@@ -45,35 +45,35 @@ jobs:
             fs.writeFileSync("app.json", JSON.stringify(cfg, null, 2));
           '
 
-          # Ensure android/, ios/, and APKs are excluded from Git
+          # Keep native build folders and APKs out of Git
           printf "\n# Native & build outputs\nandroid/\nios/\n*.apk\n" >> .gitignore
 
-          # Commit the clean source files back to the repository
+          # Push the scaffolded Expo source folders back to the repository
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "chore: scaffold initial Expo React Native project"
           git push
 
-      # 4. Install dependencies for builds
-      - name: Install npm dependencies
-        run: npm ci
+      # 4. Install dependencies
+      - name: Install dependencies
+        run: npm install
 
-      # 5. Generate native android/ folder on the runner (not saved to repo)
+      # 5. Generate the native android/ project on the runner
       - name: Expo Prebuild (Android)
         run: npx expo prebuild --platform android --clean
 
-      # 6. Compile the Debug APK
-      - name: Build Android APK
+      # 6. Compile the standalone Release APK
+      - name: Build Release APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
 
-      # 7. Upload the APK as a downloadable Artifact
-      - name: Upload APK Artifact
+      # 7. Upload the Release APK as a downloadable Artifact
+      - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: expo-app-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: expo-app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
